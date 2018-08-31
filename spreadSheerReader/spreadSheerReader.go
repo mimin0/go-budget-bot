@@ -1,4 +1,4 @@
-package main
+package spreadSheerReader
 
 import (
 	"encoding/json"
@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -66,8 +67,8 @@ func saveToken(path string, token *oauth2.Token) {
 	json.NewEncoder(f).Encode(token)
 }
 
-func main() {
-	b, err := ioutil.ReadFile("credentials.json")
+func Reader(spreadsheetId string) string {
+	b, err := ioutil.ReadFile("spreadSheerReader/credentials.json")
 	if err != nil {
 		log.Fatalf("Unable to read client secret file: %v", err)
 	}
@@ -86,20 +87,26 @@ func main() {
 
 	// Prints the names and majors of students in a sample spreadsheet:
 	// https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit
-	spreadsheetId := "1ogKVQAeDO0GilkhOXvQwvwruIpK8SfYN9Yn-pEkHLS0"
 	readRange := "Sheet!A2:D"
 	resp, err := srv.Spreadsheets.Values.Get(spreadsheetId, readRange).Do()
 	if err != nil {
 		log.Fatalf("Unable to retrieve data from sheet: %v", err)
 	}
 
+	bData := []string{}
+	var stringData string
+
 	if len(resp.Values) == 0 {
-		fmt.Println("No data found.")
+		stringData = "No data found."
+		return stringData
 	} else {
 		fmt.Println("Date, Expencis, Amount, Type:")
 		for _, row := range resp.Values {
 			// Print columns A and E, which correspond to indices 0 and 4.
 			fmt.Printf("%s, %s, %s, %s\n", row[0], row[1], row[2], row[3])
+			bData = append(bData, fmt.Sprintf("%v", row[0]), fmt.Sprintf("%v", row[1]), fmt.Sprintf("%v", row[2]), fmt.Sprintf("%v\n", row[3]))
 		}
 	}
+	stringData = strings.Join(bData, ",")
+	return stringData
 }
