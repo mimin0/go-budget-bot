@@ -55,6 +55,11 @@ func main() {
 		} else {
 			// condition for command messages
 			switch command {
+			case "help":
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
+				msg.Text = "/help - show help info \n" +
+					"/showall - show all items in a budget spread sheet"
+				bot.Send(msg)
 			case "showall":
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, r.Reader(configuration.SpreadID))
 				msg.ReplyToMessageID = update.Message.MessageID
