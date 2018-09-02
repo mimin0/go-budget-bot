@@ -7,7 +7,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
@@ -68,7 +70,7 @@ func saveToken(path string, token *oauth2.Token) {
 }
 
 func Reader(spreadsheetId string) string {
-	b, err := ioutil.ReadFile("spreadSheerReader/credentials.json")
+	b, err := ioutil.ReadFile("spreadSheet/credentials.json")
 	if err != nil {
 		log.Fatalf("Unable to read client secret file: %v", err)
 	}
@@ -96,6 +98,7 @@ func Reader(spreadsheetId string) string {
 
 	bData := []string{}
 	var stringData string
+	// var CountStr string
 
 	if len(resp.Values) == 0 {
 		stringData = "No data found."
@@ -104,10 +107,77 @@ func Reader(spreadsheetId string) string {
 		fmt.Println("Date, Expencis, Amount, Type:")
 		for _, row := range resp.Values {
 			// Print columns A and E, which correspond to indices 0 and 4.
-			fmt.Printf("%s, %s, %s, %s\n", row[0], row[1], row[2], row[3])
+			//fmt.Printf("%s, %s, %s, %s\n", row[0], row[1], row[2], row[3])
 			bData = append(bData, fmt.Sprintf("%v", row[0]), fmt.Sprintf("%v", row[1]), fmt.Sprintf("%v", row[2]), fmt.Sprintf("%v\n", row[3]))
 		}
 	}
 	stringData = strings.Join(bData, ",")
 	return stringData
+}
+
+func Writer(spreadsheetId string, messageDate int, textMessage string) string {
+	b, err := ioutil.ReadFile("spreadSheet/credentials.json")
+	if err != nil {
+		log.Fatalf("Unable to read client secret file: %v", err)
+	}
+	//parsing time of adding new items
+	i, err := strconv.ParseInt(fmt.Sprintf("%v", messageDate), 10, 64)
+	if err != nil {
+		panic(err)
+	}
+	tm := time.Unix(i, 0)
+	goodTimeFormat := tm.Format("2006/01/02 15:04:05")
+
+	// If modifying these scopes, delete your previously saved token.json.
+	// scope list https://developers.google.com/sheets/api/guides/authorizing
+	config, err := google.ConfigFromJSON(b, "https://www.googleapis.com/auth/spreadsheets")
+	if err != nil {
+		log.Fatalf("Unable to parse client secret file to config: %v", err)
+	}
+	client := getClient(config)
+
+	srv, err := sheets.New(client)
+	if err != nil {
+		log.Fatalf("Unable to retrieve Sheets client: %v", err)
+	}
+	type body struct {
+		Data struct {
+			Range  string     `json:"range"`
+			Values [][]string `json:"values"`
+		} `json:"data"`
+		ValueInputOption string `json:"valueInputOption"`
+	}
+
+	// get the last filled row in a spread sheet
+	currentRange := "Sheet!A2:D"
+	var stringL []string
+	Resp, err := srv.Spreadsheets.Values.Get(spreadsheetId, currentRange).Do()
+	if err != nil {
+		log.Fatalf("Unable to retrieve data from  sheet: %v", err)
+	}
+	for CountStr, _ := range Resp.Values {
+		// Print columns A and E, which correspond to indices 0 and 4.
+		// fmt.Printf("%s, %s, %s, %s\n", row[0], row[1], row[2], row[3])
+		// bData = append(bData, fmt.Sprintf("%v", row[0]), fmt.Sprintf("%v", row[1]), fmt.Sprintf("%v", row[2]), fmt.Sprintf("%v\n", row[3]))
+
+		stringL = []string{"Sheet!A", fmt.Sprintf("%v", CountStr+3), ":D", fmt.Sprintf("%v", CountStr+3)}
+	}
+	// CountStr += CountStr
+	readRange := strings.Join(stringL, "")
+	text := strings.Split(textMessage, " ")
+	values := [][]interface{}{{goodTimeFormat, text[1], text[2], text[3]}}
+	rb := &sheets.BatchUpdateValuesRequest{
+		ValueInputOption: "USER_ENTERED",
+	}
+	rb.Data = append(rb.Data, &sheets.ValueRange{
+		Range:  readRange,
+		Values: values,
+	})
+	_, err = srv.Spreadsheets.Values.BatchUpdate(spreadsheetId, rb).Do()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Done.")
+	done := "done!"
+	return done
 }

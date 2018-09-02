@@ -16,3 +16,6 @@ this is the tool that can help you to simplify managing and/or handling your exp
  - Get the Telegram bot lib:
 
     ```go get gopkg.in/telegram-bot-api.v4```
+
+## Work notes
+- GO + Google Sheets https://developers.google.com/sheets/api/quickstart/go https://developers.google.com/sheets/api/guides/authorizing

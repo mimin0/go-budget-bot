@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	r "github.com/mimin0/go-budget-bot/spreadSheerReader"
+	r "github.com/mimin0/go-budget-bot/spreadSheet"
 
 	"gopkg.in/telegram-bot-api.v4"
 )
@@ -58,11 +58,21 @@ func main() {
 			case "help":
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 				msg.Text = "/help - show help info \n" +
-					"/showall - show all items in a budget spread sheet"
+					"/showall - show all items in a budget spreadsheet \n" +
+					"/add - adding new item. for instance: \n [/add] [short_comment] [summ] [type]  '/add beer 50 fun'\n" +
+					"/showtypes - show all types"
 				bot.Send(msg)
 			case "showall":
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, r.Reader(configuration.SpreadID))
 				msg.ReplyToMessageID = update.Message.MessageID
+				bot.Send(msg)
+			case "add":
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, r.Writer(configuration.SpreadID, update.Message.Date, update.Message.Text))
+				msg.ReplyToMessageID = update.Message.MessageID
+				bot.Send(msg)
+			case "showtypes":
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
+				msg.Text = "Groceries, Gifts, Appartment, Transportation, Departmental, Travel, Loan, OneTime, Car, Fun"
 				bot.Send(msg)
 			}
 		}
