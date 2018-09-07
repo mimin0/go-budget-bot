@@ -155,14 +155,9 @@ func Writer(spreadsheetId string, messageDate int, textMessage string) string {
 	if err != nil {
 		log.Fatalf("Unable to retrieve data from  sheet: %v", err)
 	}
-	for CountStr, _ := range Resp.Values {
-		// Print columns A and E, which correspond to indices 0 and 4.
-		// fmt.Printf("%s, %s, %s, %s\n", row[0], row[1], row[2], row[3])
-		// bData = append(bData, fmt.Sprintf("%v", row[0]), fmt.Sprintf("%v", row[1]), fmt.Sprintf("%v", row[2]), fmt.Sprintf("%v\n", row[3]))
+	index := len(Resp.Values)
+	stringL = []string{"Sheet!A", fmt.Sprintf("%v", index), ":D", fmt.Sprintf("%v", index)}
 
-		stringL = []string{"Sheet!A", fmt.Sprintf("%v", CountStr+3), ":D", fmt.Sprintf("%v", CountStr+3)}
-	}
-	// CountStr += CountStr
 	readRange := strings.Join(stringL, "")
 	text := strings.Split(textMessage, " ")
 	values := [][]interface{}{{goodTimeFormat, text[1], text[2], text[3]}}
