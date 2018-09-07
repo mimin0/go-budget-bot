@@ -1,4 +1,4 @@
-[![Build Status][travis-badge]][travis]
+[![Build Status](https://travis-ci.org/mimin0/go-budget-bot.svg?branch=master)](https://travis-ci.org/mimin0/go-budget-bot)
 
 # Go-Budget-Bot
 this is the tool that can help you to simplify managing and/or handling your expences within Telegram bot
