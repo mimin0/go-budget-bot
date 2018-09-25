@@ -4,10 +4,10 @@ import sys
 
 from botocore.vendored import requests
 import logging
-from datetime import datetime
+from datetime import date
 import boto3
 
-today = datetime.now()
+time_stamp = str(date.today())
 ## add loging to CW
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -18,14 +18,17 @@ client = boto3.client('dynamodb')
 TOKEN = os.environ['TELEGRAM_TOKEN']
 BASE_URL = "https://api.telegram.org/bot{}".format(TOKEN)
 
-def create_record(time_stamp):
-    record_date= time_stamp.strftime("%Y-%b-%d")
+def create_record(message, message_time):
+    n_message = message.split(" ")
     resp = client.put_item(
         TableName=DB_TABLE,
         Item={
-            "date": record_date
-        }
-    )
+            'date': {'S':message_time},
+            'amount':{'N':n_message[1]},
+            'expencis': {'S':n_message[2]},
+            'type':{'S':n_message[3]}
+            }
+        )
 
 def hello(event, context):
     logger.info('START...')
@@ -33,6 +36,7 @@ def hello(event, context):
 
     # data = json.loads(event)
     message = str(event["message"]["text"])
+    message_time = str(event["message"]["date"])
     chat_id = event["message"]["chat"]["id"]
     response = ""
     # first_name = event["message"]["chat"]["first_name"]
@@ -40,10 +44,10 @@ def hello(event, context):
     # response = "Please /start, {}".format(first_name)
 
     if "/add" in message:
-        create_record(today)
+        create_record(message, message_time)
         response = "new new expences was added successful >>> "
     elif "/report" in message:
-        response = "the expences is >>> till {}".format(today)
+        response = "the expences is >>> till {}".format(time_stamp)
     elif "/help" in message:
         response = "List of commands: >>> "
     else:
