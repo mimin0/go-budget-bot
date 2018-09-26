@@ -14,21 +14,25 @@ logger.setLevel(logging.INFO)
 
 DB_TABLE = os.environ['DB_TABLE']
 client = boto3.client('dynamodb')
-
+type_list = ["Food","Gifts","Medical", "AppartmentRent","Transportation","Departmental", "WislianeTerasy", "WorkLunch" ,"Travel","DebtCar", "OneTime","Car", "Fun"]
 TOKEN = os.environ['TELEGRAM_TOKEN']
 BASE_URL = "https://api.telegram.org/bot{}".format(TOKEN)
 
 def create_record(message, message_time):
     n_message = message.split(" ")
-    resp = client.put_item(
-        TableName=DB_TABLE,
-        Item={
-            'date': {'S':message_time},
-            'amount':{'N':n_message[1]},
-            'expencis': {'S':n_message[2]},
-            'type':{'S':n_message[3]}
-            }
-        )
+    if n_message[3] in type_list:
+        resp = client.put_item(
+            TableName=DB_TABLE,
+            Item={
+                'date': {'S':message_time},
+                'amount':{'N':n_message[1]},
+                'expencis': {'S':n_message[2]},
+                'type':{'S':n_message[3]}
+                }
+            )
+        return "the item added"
+    else:
+        return "the type should from the list: {}".format(type_list)
 
 def hello(event, context):
     logger.info('START...')
@@ -44,8 +48,7 @@ def hello(event, context):
     # response = "Please /start, {}".format(first_name)
 
     if "/add" in message:
-        create_record(message, message_time)
-        response = "new new expences was added successful >>> "
+        response = create_record(message, message_time)
     elif "/report" in message:
         response = "the expences is >>> till {}".format(time_stamp)
     elif "/help" in message:
