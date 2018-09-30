@@ -3,6 +3,7 @@ import os
 import sys
 
 from botocore.vendored import requests
+from boto3.dynamodb.conditions import Key, Attr
 import logging
 from datetime import date
 import boto3
@@ -34,6 +35,12 @@ def create_record(message, message_time):
     else:
         return "the type should from the list: {}".format(type_list)
 
+def get_records(message_time):
+    response = client.scan(
+        TableName=DB_TABLE
+    )
+    return response
+
 def hello(event, context):
     logger.info('START...')
     logger.info(event)
@@ -50,7 +57,7 @@ def hello(event, context):
     if "/add" in message:
         response = create_record(message, message_time)
     elif "/report" in message:
-        response = "the expences is >>> till {}".format(time_stamp)
+        response = str(get_records(message_time))
     elif "/help" in message:
         response = "List of commands: >>> "
     else:
