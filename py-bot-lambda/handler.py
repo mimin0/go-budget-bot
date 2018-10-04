@@ -5,10 +5,9 @@ import sys
 from botocore.vendored import requests
 from boto3.dynamodb.conditions import Key, Attr
 import logging
-from datetime import date
+import datetime
 import boto3
 
-time_stamp = str(date.today())
 ## add loging to CW
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -39,20 +38,23 @@ def get_records(message_time):
     response = client.scan(
         TableName=DB_TABLE
     )
-    return response
+    list_of_recodrs = ""
+    for record in response["Items"]:
+        list_of_recodrs += "{} :: {} :: {}\n".format(
+            datetime.datetime.fromtimestamp(int(record["date"]["S"])).strftime('%Y-%m-%d'), 
+            record["expencis"]["S"], 
+            record["amount"]["N"]) 
+
+    return list_of_recodrs
 
 def hello(event, context):
     logger.info('START...')
     logger.info(event)
 
-    # data = json.loads(event)
     message = str(event["message"]["text"])
     message_time = str(event["message"]["date"])
     chat_id = event["message"]["chat"]["id"]
     response = ""
-    # first_name = event["message"]["chat"]["first_name"]
-
-    # response = "Please /start, {}".format(first_name)
 
     if "/add" in message:
         response = create_record(message, message_time)
