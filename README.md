@@ -21,3 +21,11 @@ this is the tool that can help you to simplify managing and/or handling your exp
 
 ## Work notes
 - GO + Google Sheets https://developers.google.com/sheets/api/quickstart/go https://developers.google.com/sheets/api/guides/authorizing
+
+
+- create user with access to (Dynamodb, Route53, Lambda)
+- create a terraform file:
+-- create IAM roles
+-- create dynamoDB table
+-- create Route53
+-- create lambda
